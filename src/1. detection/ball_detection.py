@@ -30,24 +30,21 @@ def train_yolo(yolo_model="yolo11n.pt", epochs=100, patience=100, imgsz=640, bat
     
     # YOLO training command
     train_command = (
-        f"yolo task=detect mode=train "
-        f"model={yolo_model} "  
-        f"data={data_path} "  
-        f"epochs={epochs} patience={patience} imgsz={imgsz} batch={batch} "
-        f"project={project_path} " 
-        f"name=model save=True"
+        f'yolo task=detect mode=train '
+        f'model={yolo_model} '  
+        f'data="{data_path}" '  # Wrapped in quotes
+        f'epochs={epochs} patience={patience} imgsz={imgsz} batch={batch} '
+        f'project="{project_path}" '  # Wrapped in quotes
+        f'name=modelnum save=True'
     )
-    
-    print("Training Command:", train_command)  # Print the training command
 
+    # Print the training command
+    print(train_command)
+    
     # Execute the training command
-    result = subprocess.run(train_command, shell=True, capture_output=True, text=True)
-    
-    # Print command output and errors
-    print("Command Output:", result.stdout)
-    print("Command Error:", result.stderr)
+    os.system(train_command)
 
-def test_yolo(model="model",conf=0.2, iou=0.5, max_det=1):
+def test_yolo(model="model",conf=0.2, iou=0.5, max_det=1,file_type="images", video_number=-1):
     """
     Function to automate YOLOv11 model testing with adapted paths according to the project structure.
 
@@ -61,13 +58,28 @@ def test_yolo(model="model",conf=0.2, iou=0.5, max_det=1):
     if "ultralytics" not in os.popen("pip freeze").read():
         os.system('pip install ultralytics')
 
+    if file_type == "images":
+        dir = "pictures/test/images"
+        save_dir = "pictures"
+        folder_name = "image_predictions"
+    else:
+        dir = "videos/"
+        save_dir = "videos"
+        folder_name = "ball_prediction" if video_number == 1 else "puck_prediction"
+
+    video_name = f"/Hockey{video_number}.mp4" if video_number != -1 else ""
+
     # YOLO testing command
     test_command = (
-        f"yolo task=detect mode=test "
+        f"yolo task=detect mode=predict "
         f"model=../../modelsAndLogs/{model}/weights/best.pt "  
-        f"source=../../data/raw/pictures/test/images "  
-        f"conf={conf} iou={iou} max_det={max_det}"
+        f"source=../../data/raw/{dir}{video_name} "  
+        f"conf={conf} iou={iou} max_det={max_det} "
+        f"project=../../data/predictions/{save_dir} name={folder_name} save=True"
     )
+
+    # Print the testing command
+    print(test_command)
 
     # Execute the testing command
     os.system(test_command)
@@ -83,7 +95,7 @@ def update_yaml_paths():
     
     # Construct absolute paths
     train_path = os.path.join(current_dir, r'..\..\data\raw\pictures\train')
-    val_path = os.path.join(current_dir, r'..\..\data\raw\pictures\val')
+    val_path = os.path.join(current_dir, r'..\..\data\raw\pictures\valid')
     test_path = os.path.join(current_dir, r'..\..\data\raw\pictures\test')
     
     # Load the data.yaml file
@@ -93,11 +105,11 @@ def update_yaml_paths():
     updated_lines = []
     for line in lines:
         if line.startswith("train:"):
-            updated_lines.append(f"train: {train_path}\n")
+            updated_lines.append(f"train: '{train_path}'\n")
         elif line.startswith("val:"):
-            updated_lines.append(f"val: {val_path}\n")
+            updated_lines.append(f"val: '{val_path}'\n")
         elif line.startswith("test:"):
-            updated_lines.append(f"test: {test_path}\n")
+            updated_lines.append(f"test: '{test_path}'\n")
         else:
             updated_lines.append(line)
 
@@ -109,15 +121,14 @@ def update_yaml_paths():
 
 if __name__ == "__main__":
     # ask if the user wants to train a new model or test an existing one
-    train_yolo()
-    #answer1 = input("Do you want to train a new model? (y/n): ")
-    #if answer1.lower() == "y":
-        #yolo_model = input("Enter the model name: ")
-        #epochs = int(input("Enter the number of epochs: "))
-        #patience = int(input("Enter the patience: "))
-        #imgsz = int(input("Enter the image size: "))
-        #batch = int(input("Enter the batch size: "))
-        #train_yolo(yolo_model, epochs, patience, imgsz, batch)
+    answer1 = input("Do you want to train a new model? (y/n): ")
+    if answer1.lower() == "y":
+        yolo_model = input("Enter a pre-trained model name (i.e yolo11n.pt): ")
+        epochs = int(input("Enter the number of epochs: "))
+        patience = int(input("Enter the patience: "))
+        imgsz = int(input("Enter the image size: "))
+        batch = int(input("Enter the batch size: "))
+        train_yolo(yolo_model, epochs, patience, imgsz, batch)
         
 
     answer2 = input("Do you want to test an existing model? (y/n): ")
@@ -126,4 +137,10 @@ if __name__ == "__main__":
         conf = float(input("Enter the confidence threshold: "))
         iou = float(input("Enter the intersection over union threshold: "))
         max_det = int(input("Enter the maximum detections: "))
-        test_yolo(model, conf, iou, max_det)
+        # ask if the user wants to test on images or videos, images is boolean
+        file_type = input("Do you want to test on images or videos? (images/videos): ")
+        if file_type.lower() == "videos":
+            test_yolo(model, conf, iou, max_det, file_type="videos", video_number=0)
+            test_yolo(model, conf, iou, max_det, file_type="videos", video_number=1)
+        else:
+            test_yolo(model, conf, iou, max_det)
