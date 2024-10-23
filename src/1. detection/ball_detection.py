@@ -117,6 +117,28 @@ def update_yaml_paths():
     with open(r'..\..\data\raw\pictures\data.yaml', 'w') as file:
         file.writelines(updated_lines)
 
+def revert_yaml_paths():
+    """
+    Function to revert the paths in the data.yaml file to the original paths.
+    """
+    # Load the data.yaml file
+    with open(r'..\..\data\raw\pictures\data.yaml') as file:
+        lines = file.readlines()
+
+    updated_lines = []
+    for line in lines:
+        if line.startswith("train:"):
+            updated_lines.append("train: ../train\n")
+        elif line.startswith("val:"):
+            updated_lines.append("val: ../valid\n")
+        elif line.startswith("test:"):
+            updated_lines.append("test: ../test\n")
+        else:
+            updated_lines.append(line)
+
+    # Save the updated data.yaml file
+    with open(r'..\..\data\raw\pictures\data.yaml', 'w') as file:
+        file.writelines(updated_lines)
     
 
 if __name__ == "__main__":
@@ -129,6 +151,7 @@ if __name__ == "__main__":
         imgsz = int(input("Enter the image size: "))
         batch = int(input("Enter the batch size: "))
         train_yolo(yolo_model, epochs, patience, imgsz, batch)
+        revert_yaml_paths()
         
 
     answer2 = input("Do you want to test an existing model? (y/n): ")
@@ -136,7 +159,7 @@ if __name__ == "__main__":
         model = input("Enter the model name: ")
         conf = float(input("Enter the confidence threshold: "))
         iou = float(input("Enter the intersection over union threshold: "))
-        max_det = int(input("Enter the maximum detections: "))
+        max_det = int(input("Enter the maximum detections per frame: "))
         # ask if the user wants to test on images or videos, images is boolean
         file_type = input("Do you want to test on images or videos? (images/videos): ")
         if file_type.lower() == "videos":
@@ -144,3 +167,4 @@ if __name__ == "__main__":
             test_yolo(model, conf, iou, max_det, file_type="videos", video_number=1)
         else:
             test_yolo(model, conf, iou, max_det)
+        revert_yaml_paths()
