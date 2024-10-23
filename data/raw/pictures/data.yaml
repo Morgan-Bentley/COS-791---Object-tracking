@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 1
+names: ['ball']
+
+roboflow:
+  workspace: fastdeploy
+  project: -w2x0g
+  version: 3
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/fastdeploy/-w2x0g/dataset/3
