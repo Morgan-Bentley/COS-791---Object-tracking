@@ -13,7 +13,7 @@ The directory structure for this project is as follows:<br>
 /project_root/<br>
   ├── data/<br>
   │   ├── predictions/<br>
-  │   │   ├── pictures/             # Pictures with objectprediction<br>
+  │   │   ├── pictures/             `# Pictures with objectprediction`<br>
   │   │   └── videos/               # Videos with object prediction<br>
   │   └── raw/<br>
   │       ├── pictures/<br>
