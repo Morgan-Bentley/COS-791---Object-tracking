@@ -10,10 +10,11 @@ Table of Contents
 
 Project Structure
 The directory structure for this project is as follows:<br>
+```bash
 /project_root/<br>
   ├── data/<br>
   │   ├── predictions/<br>
-  │   │   ├── pictures/             `# Pictures with objectprediction`<br>
+  │   │   ├── pictures/             # Pictures with objectprediction<br>
   │   │   └── videos/               # Videos with object prediction<br>
   │   └── raw/<br>
   │       ├── pictures/<br>
@@ -29,6 +30,7 @@ The directory structure for this project is as follows:<br>
       │      └──ball_detection.py   # script for training, testing and performing ball detection<br>
       ├── 2. tracking/<br>
       └── 3. augmentation/<br>
+```
 
 Setting Up the Environment
 Ensure that Python 3.12 is installed, along with the ultralytics package for YOLOv11. If not installed, run:
