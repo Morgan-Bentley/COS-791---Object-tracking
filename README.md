@@ -34,7 +34,9 @@ The directory structure for this project is as follows:
 
 ## Setting Up the Environment
 Ensure that Python 3.12 is installed, along with the ultralytics package for YOLOv11. If not installed, run:
+```bash
 pip install ultralytics
+```
 
 ## Training a New Model
 To train a YOLOv11 model, use the provided Python script. Run:
