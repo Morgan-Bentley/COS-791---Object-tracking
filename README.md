@@ -9,26 +9,26 @@ Table of Contents
 4. Testing an Existing Model
 
 Project Structure
-The directory structure for this project is as follows:
-/project_root/
-  ├── data/
-  │   ├── predictions/
-  │   │   ├── pictures/             # Pictures with objectprediction
-  │   │   └── videos/               # Videos with object prediction
-  │   └── raw/
-  │       ├── pictures/
-  │       │   ├── train/            # Training images
-  │       │   ├── valid/            # Validation images
-  │       │   ├── test/             # Test images
-  │       │   └── data.yaml         # YOLOv11 configuration file
-  │       └── videos/               # Videos for prediction
-  ├── modelsAndLogs/                # Directory for model and training results
-  ├── report/                       # Final detailed report on the whole project process
-  └── src/
-      ├── 1. detection/
-      │      └──ball_detection.py   # script for training, testing and performing ball detection
-      ├── 2. tracking/
-      └── 3. augmentation/
+The directory structure for this project is as follows:<br>
+/project_root/<br>
+  ├── data/<br>
+  │   ├── predictions/<br>
+  │   │   ├── pictures/             # Pictures with objectprediction<br>
+  │   │   └── videos/               # Videos with object prediction<br>
+  │   └── raw/<br>
+  │       ├── pictures/<br>
+  │       │   ├── train/            # Training images<br>
+  │       │   ├── valid/            # Validation images<br>
+  │       │   ├── test/             # Test images<br>
+  │       │   └── data.yaml         # YOLOv11 configuration file<br>
+  │       └── videos/               # Videos for prediction<br>
+  ├── modelsAndLogs/                # Directory for model and training results<br>
+  ├── report/                       # Final detailed report on the whole project process<br>
+  └── src/<br>
+      ├── 1. detection/<br>
+      │      └──ball_detection.py   # script for training, testing and performing ball detection<br>
+      ├── 2. tracking/<br>
+      └── 3. augmentation/<br>
 
 Setting Up the Environment
 Ensure that Python 3.12 is installed, along with the ultralytics package for YOLOv11. If not installed, run:
