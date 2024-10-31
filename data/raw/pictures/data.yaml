@@ -7,6 +7,9 @@ roboflow:
   url: https://universe.roboflow.com/fastdeploy/-w2x0g/dataset/3
   version: 3
   workspace: fastdeploy
-test: ../test
-train: ../train
-val: ../valid
+test: C:\Users\morga\OneDrive - University of Pretoria\Documents\Comp. sci\Year 4\Semester
+  2\COS 791\Assignments\COS-791---Object-tracking\data\raw\pictures\test
+train: C:\Users\morga\OneDrive - University of Pretoria\Documents\Comp. sci\Year 4\Semester
+  2\COS 791\Assignments\COS-791---Object-tracking\data\raw\pictures\train
+val: C:\Users\morga\OneDrive - University of Pretoria\Documents\Comp. sci\Year 4\Semester
+  2\COS 791\Assignments\COS-791---Object-tracking\data\raw\pictures\valid

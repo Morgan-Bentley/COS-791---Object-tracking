@@ -43,7 +43,7 @@ def objective(trial):
 
 
 
-def train_yolo(yolo_model="yolo11n.pt", epochs=100, patience=100, imgsz=640, batch=16):
+def train_yolo(yolo_model="yolo11n.pt", epochs=100, patience=100, imgsz=640, batch=16, momentum=0.937, lr=0.01):
     """
     Function to automate YOLOv11 model training with adapted paths according to the project structure.
     """
@@ -60,7 +60,7 @@ def train_yolo(yolo_model="yolo11n.pt", epochs=100, patience=100, imgsz=640, bat
         f'data="{data_path}" '  # Wrapped in quotes
         f'epochs={epochs} patience={patience} imgsz={imgsz} batch={batch} '
         f'project="{project_path}" '  # Wrapped in quotes
-        f'name=modelnum save=True momentum={momentum} lr0={lr} weight_decay={weight_decay} '
+        f'name=modelnum save=True momentum={momentum} lr0={lr} '
         f'augment=True hsv_h=0.2 hsv_s=0.8 hsv_v=0.5 degrees=25 scale=0.6 shear=10 erasing=0.5'
     )
 
@@ -98,6 +98,7 @@ def update_yaml_paths():
     val_path = os.path.join(os.path.dirname(data_path), 'valid')
     test_path = os.path.join(os.path.dirname(data_path), 'test')
     
+    print("data_path:", data_path)
     with open(data_path, 'r') as file:
         data_config = yaml.safe_load(file)
     
@@ -132,7 +133,9 @@ if __name__ == "__main__":
         patience = int(input("Enter the patience: "))
         imgsz = int(input("Enter the image size: "))
         batch = float(input("Enter the batch size: "))
-        train_yolo(yolo_model, epochs, patience, imgsz, int(batch) if batch.is_integer() else batch)
+        momentum = float(input("Enter the momentum (i.e 0.937): "))
+        lr = float(input("Enter the learning rate (i.e 0.01): "))
+        train_yolo(yolo_model, epochs, patience, imgsz, int(batch) if batch.is_integer() else batch, momentum, lr)
         revert_yaml_paths()
 
     answer2 = input("Do you want to test an existing model? (y/n): ")
