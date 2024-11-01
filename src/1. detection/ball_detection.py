@@ -121,38 +121,59 @@ def test_yolo(model="model",conf=0.2, iou=0.5, max_det=1,file_type="images", vid
 
 def update_yaml_paths():
     """
-    Update paths in data.yaml for Colab or local environments.
+    Function to update the paths in the data.yaml file according to the project structure.
     """
-    data_path = get_data_path()
-    train_path = os.path.join(os.path.dirname(data_path), 'train')
-    val_path = os.path.join(os.path.dirname(data_path), 'valid')
-    test_path = os.path.join(os.path.dirname(data_path), 'test')
+    # Get the current working directory
+    current_dir = os.getcwd()
+    # Use raw string to handle spaces and backslashes correctly
+    current_dir = r"{}".format(current_dir)
     
-    print("data_path:", data_path)
-    with open(data_path, 'r') as file:
-        data_config = yaml.safe_load(file)
+    # Construct absolute paths
+    train_path = os.path.join(current_dir, r'..\..\data\raw\pictures\train')
+    val_path = os.path.join(current_dir, r'..\..\data\raw\pictures\valid')
+    test_path = os.path.join(current_dir, r'..\..\data\raw\pictures\test')
     
-    data_config['train'] = train_path
-    data_config['val'] = val_path
-    data_config['test'] = test_path
+    # Load the data.yaml file
+    with open(r'..\..\data\raw\pictures\data.yaml') as file:
+        lines = file.readlines()
 
-    with open(data_path, 'w') as file:
-        yaml.safe_dump(data_config, file)
+    updated_lines = []
+    for line in lines:
+        if line.startswith("train:"):
+            updated_lines.append(f"train: '{train_path}'\n")
+        elif line.startswith("val:"):
+            updated_lines.append(f"val: '{val_path}'\n")
+        elif line.startswith("test:"):
+            updated_lines.append(f"test: '{test_path}'\n")
+        else:
+            updated_lines.append(line)
+
+    # Save the updated data.yaml file
+    with open(r'..\..\data\raw\pictures\data.yaml', 'w') as file:
+        file.writelines(updated_lines)
 
 def revert_yaml_paths():
     """
-    Revert paths in data.yaml to their original relative values.
+    Function to revert the paths in the data.yaml file to the original paths.
     """
-    data_path = get_data_path()
-    with open(data_path, 'r') as file:
-        data_config = yaml.safe_load(file)
-    
-    data_config['train'] = '../train'
-    data_config['val'] = '../valid'
-    data_config['test'] = '../test'
+    # Load the data.yaml file
+    with open(r'..\..\data\raw\pictures\data.yaml') as file:
+        lines = file.readlines()
 
-    with open(data_path, 'w') as file:
-        yaml.safe_dump(data_config, file)
+    updated_lines = []
+    for line in lines:
+        if line.startswith("train:"):
+            updated_lines.append("train: ../train\n")
+        elif line.startswith("val:"):
+            updated_lines.append("val: ../valid\n")
+        elif line.startswith("test:"):
+            updated_lines.append("test: ../test\n")
+        else:
+            updated_lines.append(line)
+
+    # Save the updated data.yaml file
+    with open(r'..\..\data\raw\pictures\data.yaml', 'w') as file:
+        file.writelines(updated_lines)
 
 if __name__ == "__main__":
     # Train or test model based on user input
