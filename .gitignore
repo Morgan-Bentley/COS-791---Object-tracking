@@ -1,0 +1,5 @@
+# Ignore all files in data directory
+/data/**
+
+# Exclude specific non-image files
+!data/raw/pictures/data.yaml
