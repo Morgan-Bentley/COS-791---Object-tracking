@@ -2,6 +2,7 @@ import os
 import subprocess
 import yaml
 import torch
+import cv2
 #import optuna
 
 torch.cuda.empty_cache()
@@ -67,27 +68,86 @@ def train_yolo(yolo_model="yolo11n.pt", epochs=100, patience=100, imgsz=640, bat
     print("Executing training command:", train_command)
     os.system(train_command)
 
-def test_yolo(model="model", conf=0.2, iou=0.5, max_det=1, file_type="images", video_number=-1):
+def calculate_iou(box1, box2):
+    xA, yA, xB, yB = max(box1[0], box2[0]), max(box1[1], box2[1]), min(box1[2], box2[2]), min(box1[3], box2[3])
+    inter_area = max(0, xB - xA + 1) * max(0, yB - yA + 1)
+    box1_area = (box1[2] - box1[0] + 1) * (box1[3] - box1[1] + 1)
+    box2_area = (box2[2] - box2[0] + 1) * (box2[3] - box2[1] + 1)
+    return inter_area / float(box1_area + box2_area - inter_area)
+
+def test_yolo_with_tracking(model="model", conf=0.2, iou=0.5, max_det=1, video_number=0):
     """
-    Function to automate YOLOv11 model testing with adapted paths according to the project structure.
+    YOLOv11 testing with tracking, enlargement, and highlighting for video.
     """
     install_ultralytics()
+    
+    video_path = f"../../data/raw/videos/Hockey{video_number}.mp4"
+    save_path = f"../../data/predictions/videos/ball_tracking_Hockey{video_number}.mp4"
+    
+    yolo_model_path = f"../../modelsAndLogs/{model}/weights/best.pt"
+    model = torch.hub.load('ultralytics/yolov11', 'custom', path=yolo_model_path)  # Adjust if using YOLOv11
+    model.conf = conf  # Set confidence threshold
 
-    dir_path = "pictures/test/images" if file_type == "images" else "videos/"
-    save_dir = "pictures" if file_type == "images" else "videos"
-    folder_name = "image_predictions" if file_type == "images" else ("ball_prediction" if video_number == 1 else "puck_prediction")
-    video_name = f"/Hockey{video_number}.mp4" if video_number != -1 else ""
+    cap = cv2.VideoCapture(video_path)
+    if not cap.isOpened():
+        print(f"Failed to open video {video_path}")
+        return
+    
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    
+    fourcc = cv2.VideoWriter_fourcc(*'XVID')
+    out = cv2.VideoWriter(save_path, fourcc, fps, (frame_width, frame_height))
+    
+    previous_detections = []
+    
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            break
+        
+        results = model(frame)
+        detections = results.pred[0].numpy()
+        
+        current_detections = []
+        for det in detections:
+            if det[4] > conf:
+                x1, y1, x2, y2, conf_score, cls = det
+                current_detections.append([x1, y1, x2, y2, conf_score])
 
-    test_command = (
-        f"yolo task=detect mode=predict "
-        f"model=../../modelsAndLogs/{model}/weights/best.pt "
-        f"source=../../data/raw/{dir_path}{video_name} "
-        f"conf={conf} iou={iou} max_det={max_det} "
-        f"project=../../data/predictions/{save_dir} name={folder_name} save=True"
-    )
+        for det in current_detections:
+            match_found = False
+            for prev_det in previous_detections:
+                iou_score = calculate_iou(prev_det[:4], det[:4])
+                if iou_score > 0.3:
+                    match_found = True
+                    det.append(prev_det[4])  # Keep same ID
+                    break
+            if not match_found:
+                det.append(len(previous_detections) + 1)  # New ID if no match
 
-    print("Executing testing command:", test_command)
-    os.system(test_command)
+        previous_detections = current_detections
+        
+        for det in current_detections:
+            x1, y1, x2, y2, conf_score, obj_id = det
+            ball_width, ball_height = int((x2 - x1) * 1.5), int((y2 - y1) * 1.5)
+            center_x, center_y = int((x1 + x2) / 2), int((y1 + y2) / 2)
+            
+            cv2.circle(frame, (center_x, center_y), int(ball_width / 2), (0, 0, 255), -1)
+            cv2.putText(frame, f'ID: {int(obj_id)}', (int(x1), int(y1) - 10),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+        
+        out.write(frame)
+        cv2.imshow('Ball Tracking', frame)
+        
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    out.release()
+    cv2.destroyAllWindows()
+    print(f"Output saved to {save_path}")
 
 def update_yaml_paths():
     """
@@ -146,8 +206,8 @@ if __name__ == "__main__":
         max_det = int(input("Enter the maximum detections per frame: "))
         file_type = input("Do you want to test on images or videos? (images/videos): ")
         if file_type.lower() == "videos":
-            test_yolo(model, conf, iou, max_det, file_type="videos", video_number=0)
-            test_yolo(model, conf, iou, max_det, file_type="videos", video_number=1)
+            test_yolo_with_tracking(model, conf, iou, max_det, video_number=0)
+            test_yolo_with_tracking(model, conf, iou, max_det, video_number=1)
         else:
-            test_yolo(model, conf, iou, max_det)
+            test_yolo_with_tracking(model, conf, iou, max_det)
         revert_yaml_paths()
