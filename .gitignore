@@ -1,0 +1,9 @@
+# Ignore all files in data directory
+data/raw/pictures/*
+
+# Allow specific subfolder and its contents
+!data/trackingAndModify/
+!data/trackingAndModify/**
+
+# Exclude specific non-image files
+!data/raw/pictures/data.yaml
