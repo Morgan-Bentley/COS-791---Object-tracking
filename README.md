@@ -7,6 +7,7 @@ Table of Contents
 2. Setting Up the Environment
 3. Training a New Model
 4. Testing an Existing Model
+5. Ball Tracking and Video Processing with YOLO
 
 ## Project Structure
 The directory structure for this project is as follows:
