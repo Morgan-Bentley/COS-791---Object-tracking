@@ -7,6 +7,10 @@ import cv2
 
 torch.cuda.empty_cache()
 
+# drop images without ball
+def drop_images_without_ball():
+
+
 def install_ultralytics():
     """Install ultralytics if not already installed."""
     if "ultralytics" not in subprocess.check_output("pip freeze", shell=True).decode():
@@ -75,79 +79,45 @@ def calculate_iou(box1, box2):
     box2_area = (box2[2] - box2[0] + 1) * (box2[3] - box2[1] + 1)
     return inter_area / float(box1_area + box2_area - inter_area)
 
-def test_yolo_with_tracking(model="model", conf=0.2, iou=0.5, max_det=1, video_number=0):
+def test_yolo(model="model",conf=0.2, iou=0.5, max_det=1,file_type="images", video_number=-1):
     """
-    YOLOv11 testing with tracking, enlargement, and highlighting for video.
+    Function to automate YOLOv11 model testing with adapted paths according to the project structure.
+
+    Args:
+    model (str): Model name.
+    conf (float): Confidence threshold.
+    iou (float): Intersection over Union threshold.
+    max_det (int): Maximum detections.
     """
-    install_ultralytics()
-    
-    video_path = f"../../data/raw/videos/Hockey{video_number}.mp4"
-    save_path = f"../../data/predictions/videos/ball_tracking_Hockey{video_number}.mp4"
-    
-    yolo_model_path = f"../../modelsAndLogs/{model}/weights/best.pt"
-    model = torch.hub.load('ultralytics/yolov11', 'custom', path=yolo_model_path)  # Adjust if using YOLOv11
-    model.conf = conf  # Set confidence threshold
+    # Installing ultralytics package if not already installed
+    if "ultralytics" not in os.popen("pip freeze").read():
+        os.system('pip install ultralytics')
 
-    cap = cv2.VideoCapture(video_path)
-    if not cap.isOpened():
-        print(f"Failed to open video {video_path}")
-        return
-    
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    out = cv2.VideoWriter(save_path, fourcc, fps, (frame_width, frame_height))
-    
-    previous_detections = []
-    
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            break
-        
-        results = model(frame)
-        detections = results.pred[0].numpy()
-        
-        current_detections = []
-        for det in detections:
-            if det[4] > conf:
-                x1, y1, x2, y2, conf_score, cls = det
-                current_detections.append([x1, y1, x2, y2, conf_score])
+    if file_type == "images":
+        dir = "pictures/test/images"
+        save_dir = "pictures"
+        folder_name = "image_predictions"
+    else:
+        dir = "videos/"
+        save_dir = "videos"
+        folder_name = "ball_prediction" if video_number == 1 else "puck_prediction"
 
-        for det in current_detections:
-            match_found = False
-            for prev_det in previous_detections:
-                iou_score = calculate_iou(prev_det[:4], det[:4])
-                if iou_score > 0.3:
-                    match_found = True
-                    det.append(prev_det[4])  # Keep same ID
-                    break
-            if not match_found:
-                det.append(len(previous_detections) + 1)  # New ID if no match
+    video_name = f"/Hockey{video_number}.mp4" if video_number != -1 else ""
 
-        previous_detections = current_detections
-        
-        for det in current_detections:
-            x1, y1, x2, y2, conf_score, obj_id = det
-            ball_width, ball_height = int((x2 - x1) * 1.5), int((y2 - y1) * 1.5)
-            center_x, center_y = int((x1 + x2) / 2), int((y1 + y2) / 2)
-            
-            cv2.circle(frame, (center_x, center_y), int(ball_width / 2), (0, 0, 255), -1)
-            cv2.putText(frame, f'ID: {int(obj_id)}', (int(x1), int(y1) - 10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-        
-        out.write(frame)
-        cv2.imshow('Ball Tracking', frame)
-        
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+    # YOLO testing command
+    test_command = (
+        f"yolo task=detect mode=predict "
+        f"model=../../modelsAndLogs/{model}/weights/best.pt "  
+        f"source=../../data/raw/{dir}{video_name} "  
+        f"conf={conf} iou={iou} max_det={max_det} "
+        f"project=../../data/predictions/{save_dir} name={folder_name} save=True"
+    )
 
-    cap.release()
-    out.release()
-    cv2.destroyAllWindows()
-    print(f"Output saved to {save_path}")
+    # Print the testing command
+    print(test_command)
+
+    # Execute the testing command
+    os.system(test_command)
 
 def update_yaml_paths():
     """
@@ -206,8 +176,8 @@ if __name__ == "__main__":
         max_det = int(input("Enter the maximum detections per frame: "))
         file_type = input("Do you want to test on images or videos? (images/videos): ")
         if file_type.lower() == "videos":
-            test_yolo_with_tracking(model, conf, iou, max_det, video_number=0)
-            test_yolo_with_tracking(model, conf, iou, max_det, video_number=1)
+            test_yolo(model, conf, iou, max_det, file_type="videos", video_number=1)
+            test_yolo(model, conf, iou, max_det, file_type="videos", video_number=2)
         else:
-            test_yolo_with_tracking(model, conf, iou, max_det)
+            test_yolo(model, conf, iou, max_det)
         revert_yaml_paths()
