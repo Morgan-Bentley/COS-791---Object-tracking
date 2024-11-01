@@ -7,10 +7,6 @@ import cv2
 
 torch.cuda.empty_cache()
 
-# drop images without ball
-def drop_images_without_ball():
-
-
 def install_ultralytics():
     """Install ultralytics if not already installed."""
     if "ultralytics" not in subprocess.check_output("pip freeze", shell=True).decode():
@@ -197,8 +193,8 @@ if __name__ == "__main__":
         max_det = int(input("Enter the maximum detections per frame: "))
         file_type = input("Do you want to test on images or videos? (images/videos): ")
         if file_type.lower() == "videos":
+            test_yolo(model, conf, iou, max_det, file_type="videos", video_number=0)
             test_yolo(model, conf, iou, max_det, file_type="videos", video_number=1)
-            test_yolo(model, conf, iou, max_det, file_type="videos", video_number=2)
         else:
             test_yolo(model, conf, iou, max_det)
         revert_yaml_paths()
