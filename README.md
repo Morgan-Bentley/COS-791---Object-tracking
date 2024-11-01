@@ -27,12 +27,13 @@ The directory structure for this project is as follows:
   ├── modelsAndLogs/                # Directory for model and training results
   ├── report/                       # Final detailed report on the whole project process
   └── src/
-      ├── 1. detection/
+      ├── 1. augmentation/
+      │      └──augmentation.py   # script for augmenting training dataset to avoid overfitting
+      ├── 2. detection/
       │      └──ball_detection.py   # script for training, testing and performing ball detection
-      ├── 2. tracking/
-      │      └──ball_tracking.py   # script for tracking ball, enlarging it and changing its colour
-      └── 3. augmentation/
-             └──augmentation.py   # script for augmenting training dataset to avoid overfitting
+      └── 3. tracking/
+             └──ball_tracking.py   # script for tracking ball, enlarging it and changing its colour
+      
 ```
 
 ## Setting Up the Environment
