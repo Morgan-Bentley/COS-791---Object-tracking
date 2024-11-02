@@ -3,7 +3,6 @@ import subprocess
 import yaml
 import torch
 import cv2
-#import optuna
 
 torch.cuda.empty_cache()
 
@@ -28,22 +27,6 @@ def get_project_path():
     else:
         return os.path.abspath(os.path.join(current_dir, '../../modelsAndLogs'))
 
-def objective(trial):
-    """
-    Objective function for Optuna hyperparameter optimization.
-    """
-    lr = trial.suggest_float("lr", 1e-5, 1e-1, log=True)
-    momentum = trial.suggest_float("momentum", 0.8, 0.99)
-    weight_decay = trial.suggest_float("weight_decay", 1e-5, 1e-3, log=True)
-
-    # Train YOLO model with suggested hyperparameters
-    train_yolo(epochs=100, patience=100, imgsz=640, batch=16, lr=lr, momentum=momentum, weight_decay=weight_decay)
-
-    # Evaluate the model
-    # Return the evaluation metric (e.g. mAP) as the objective value
-
-
-
 def train_yolo(yolo_model="yolo11n.pt", epochs=100, patience=100, imgsz=640, batch=16, momentum=0.937, lr=0.01):
     """
     Function to automate YOLOv11 model training with adapted paths according to the project structure.
@@ -62,7 +45,6 @@ def train_yolo(yolo_model="yolo11n.pt", epochs=100, patience=100, imgsz=640, bat
         f'epochs={epochs} patience={patience} imgsz={imgsz} batch={batch} '
         f'project="{project_path}" '  # Wrapped in quotes
         f'name=modelnum save=True momentum={momentum} lr0={lr} '
-        f'augment=True hsv_h=0.2 hsv_s=0.8 hsv_v=0.5 degrees=25 scale=0.6 shear=10 erasing=0.5'
     )
 
     print("Executing training command:", train_command)
