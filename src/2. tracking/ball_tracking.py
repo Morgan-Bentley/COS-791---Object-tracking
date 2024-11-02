@@ -5,26 +5,54 @@ import cv2
 import os
 
 class BallTracker:
-    def __init__(self, max_disappeared=10):
+    def __init__(self, max_disappeared=5):
+        # Initialize OpenCV's Kalman Filter
+        self.kf = cv2.KalmanFilter(4, 2)
+        self.kf.measurementMatrix = np.array([[1, 0, 0, 0],
+                                              [0, 1, 0, 0]], np.float32)
+        self.kf.transitionMatrix = np.array([[1, 0, 1, 0],
+                                             [0, 1, 0, 1],
+                                             [0, 0, 1, 0],
+                                             [0, 0, 0, 1]], np.float32)
+        self.kf.processNoiseCov = np.eye(4, dtype=np.float32) * 0.03
+        
+        # Additional attributes
         self.max_disappeared = max_disappeared
         self.positions = deque(maxlen=2)
         self.disappeared = 0
-    
+        self.initialized = False
+
+    def initialize_filter(self, position):
+        # Set the initial state [x, y, dx, dy] where (x, y) is the position
+        # and (dx, dy) is the velocity
+        self.kf.statePre = np.array([[position[0]], [position[1]], [0], [0]], dtype=np.float32)
+        self.initialized = True
+
     def update(self, position):
         if position is not None:
+            if not self.initialized:
+                self.initialize_filter(position)
+            
+            # Perform a measurement update with the detected position
+            measurement = np.array([[np.float32(position[0])], [np.float32(position[1])]])
+            self.kf.correct(measurement)
             self.positions.append(position)
             self.disappeared = 0
+
         else:
+            # Increment disappeared counter if no position is detected
             self.disappeared += 1
             
-        # Predict if ball is missing
-        if self.disappeared > self.max_disappeared and len(self.positions) > 1:
-            last_position = np.array(self.positions[-1])
-            previous_position = np.array(self.positions[-2])
-            predicted_position = last_position + (last_position - previous_position)
-            return tuple(predicted_position.astype(int))
-        
-        return position if position is not None else self.positions[-1]
+            # Perform a prediction step if we’re missing detections
+            if self.disappeared > self.max_disappeared:
+                predicted = self.kf.predict()
+                predicted_position = (int(predicted[0]), int(predicted[1]))
+                return predicted_position
+
+        # Predict the next position if the ball disappears in the next frame
+        predicted = self.kf.predict()
+        predicted_position = (int(predicted[0]), int(predicted[1]))
+        return predicted_position
 
 def test_yolo_with_tracking(model="modelnum", conf=0.2, iou=0.5, max_det=1, video_path=None, output_path=None, hue_shift=0, scale=3.5):
     if "ultralytics" not in os.popen("pip freeze").read():
@@ -81,7 +109,7 @@ def test_yolo_with_tracking(model="modelnum", conf=0.2, iou=0.5, max_det=1, vide
         
         # Draw the tracked position as a circle for reference if needed
         if tracked_position:
-            cv2.circle(frame, tracked_position, 5, (0, 0, 255), 2)  # Small circle at tracked position
+            cv2.circle(frame, tracked_position, 1, (0, 0, 255), 2)  # Small circle at tracked position
         
         out.write(frame)
     
