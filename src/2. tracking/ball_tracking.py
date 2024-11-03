@@ -5,7 +5,7 @@ import cv2
 import os
 
 class BallTracker:
-    def __init__(self, max_disappeared=3):
+    def __init__(self, max_disappeared=5):
         # Initialize OpenCV's Kalman Filter
         self.kf = cv2.KalmanFilter(4, 2)
         self.kf.measurementMatrix = np.array([[1, 0, 0, 0],
