@@ -101,18 +101,23 @@ def update_yaml_paths():
     """
     Function to update the paths in the data.yaml file according to the project structure.
     """
-    # Get the current working directory
-    current_dir = os.getcwd()
-    # Use raw string to handle spaces and backslashes correctly
-    current_dir = r"{}".format(current_dir)
-    
-    # Construct absolute paths
-    train_path = os.path.join(current_dir, r'..\..\data\raw\pictures\train')
-    val_path = os.path.join(current_dir, r'..\..\data\raw\pictures\valid')
-    test_path = os.path.join(current_dir, r'..\..\data\raw\pictures\test')
-    
-    # Load the data.yaml file
-    with open(r'..\..\data\raw\pictures\data.yaml') as file:
+    # Determine if running in Colab
+    if '/content' in os.getcwd():
+        # Adjust path for Colab environment
+        yaml_path = '/content/COS-791---Object-tracking/data/raw/pictures/data.yaml'
+        train_path = '/content/COS-791---Object-tracking/data/raw/pictures/train'
+        val_path = '/content/COS-791---Object-tracking/data/raw/pictures/valid'
+        test_path = '/content/COS-791---Object-tracking/data/raw/pictures/test'
+    else:
+        # Local environment path
+        current_dir = os.getcwd()
+        yaml_path = os.path.join(current_dir, '../../data/raw/pictures/data.yaml')
+        train_path = os.path.join(current_dir, '../../data/raw/pictures/train')
+        val_path = os.path.join(current_dir, '../../data/raw/pictures/valid')
+        test_path = os.path.join(current_dir, '../../data/raw/pictures/test')
+
+    # Load and modify the data.yaml file
+    with open(yaml_path, 'r') as file:
         lines = file.readlines()
 
     updated_lines = []
@@ -127,15 +132,24 @@ def update_yaml_paths():
             updated_lines.append(line)
 
     # Save the updated data.yaml file
-    with open(r'..\..\data\raw\pictures\data.yaml', 'w') as file:
+    with open(yaml_path, 'w') as file:
         file.writelines(updated_lines)
 
 def revert_yaml_paths():
     """
-    Function to revert the paths in the data.yaml file to the original paths.
+    Function to revert the paths in the data.yaml file to the original relative paths.
     """
+    # Determine if running in Colab
+    if '/content' in os.getcwd():
+        # Path for Colab environment
+        yaml_path = '/content/COS-791---Object-tracking/data/raw/pictures/data.yaml'
+    else:
+        # Local environment path
+        current_dir = os.getcwd()
+        yaml_path = os.path.join(current_dir, '../../data/raw/pictures/data.yaml')
+
     # Load the data.yaml file
-    with open(r'..\..\data\raw\pictures\data.yaml') as file:
+    with open(yaml_path, 'r') as file:
         lines = file.readlines()
 
     updated_lines = []
@@ -150,7 +164,7 @@ def revert_yaml_paths():
             updated_lines.append(line)
 
     # Save the updated data.yaml file
-    with open(r'..\..\data\raw\pictures\data.yaml', 'w') as file:
+    with open(yaml_path, 'w') as file:
         file.writelines(updated_lines)
 
 if __name__ == "__main__":
