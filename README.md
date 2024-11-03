@@ -40,7 +40,7 @@ The directory structure for this project is as follows:
 ## Setting Up the Environment
 
 ### Prerequisites:
-Anaconda: Download and install Anaconda for managing dependencies and creating isolated environments.
+Anaconda: Download and install Anaconda for managing dependencies and creating isolated environments.<br>
 NVIDIA GPU (optional): If you plan to use GPU acceleration, ensure you have an NVIDIA GPU and the compatible CUDA version installed.
 
 **Create a New Environment:**<br>
