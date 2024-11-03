@@ -88,7 +88,23 @@ def test_yolo_with_tracking(model="modelnum", conf=0.2, iou=0.5, max_det=1, vide
             # Extract the ball region and adjust hue
             ball_region = frame[y1:y2, x1:x2]
             hsv_ball = cv2.cvtColor(ball_region, cv2.COLOR_BGR2HSV)
-            hsv_ball[:, :, 0] = (hsv_ball[:, :, 0] + hue_shift) % 180  # Adjust hue channel
+
+            # Create a mask for the ball itself
+            center_x_rel, center_y_rel = (x2 - x1) // 2, (y2 - y1) // 2  # Center of the bounding box in relative coordinates
+            radius = min(center_x_rel, center_y_rel)  # Radius of the ball
+            mask = np.zeros((y2 - y1, x2 - x1), dtype=np.uint8)
+            cv2.circle(mask, (center_x_rel, center_y_rel), radius, 255, -1)  # Draw the circular mask
+
+            # Increase saturation and value in the masked (ball) region to make hue shift visible on dark colors
+            saturation_boost = 50  # Adjust this value as needed
+            value_boost = 20       # Adjust this value as needed
+            hsv_ball[:, :, 1] = np.where(mask == 255, np.clip(hsv_ball[:, :, 1] + saturation_boost, 0, 255), hsv_ball[:, :, 1])
+            hsv_ball[:, :, 2] = np.where(mask == 255, np.clip(hsv_ball[:, :, 2] + value_boost, 0, 255), hsv_ball[:, :, 2])
+
+            # Adjust hue in the masked (ball) region only
+            hsv_ball[:, :, 0] = np.where(mask == 255, (hsv_ball[:, :, 0] + hue_shift) % 180, hsv_ball[:, :, 0])
+
+            # Convert back to BGR
             color_adjusted_ball = cv2.cvtColor(hsv_ball, cv2.COLOR_HSV2BGR)
             
             # Resize (enlarge) the detected ball region
@@ -106,7 +122,7 @@ def test_yolo_with_tracking(model="modelnum", conf=0.2, iou=0.5, max_det=1, vide
             ball_position = None
         
         tracked_position = tracker.update(ball_position)
-        
+
         # Draw the tracked position as a circle for reference if needed
         if tracked_position:
             cv2.circle(frame, tracked_position, 1, (0, 0, 255), 2)  # Small circle at tracked position
