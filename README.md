@@ -113,7 +113,7 @@ In addition to training and testing, the script includes a feature to track and 
 To process videos with ball tracking, run:
 
 ```bash
-python ball_detection.py
+python ball_tracking.py
 ```
 
 ### The script will prompt for these additional inputs:
