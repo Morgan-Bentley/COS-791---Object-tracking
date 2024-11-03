@@ -122,6 +122,10 @@ def test_yolo_with_tracking(model="modelnum", conf=0.2, iou=0.5, max_det=1, vide
             ball_position = None
         
         tracked_position = tracker.update(ball_position)
+
+        # Draw the tracked position as a circle for reference if needed
+        if tracked_position:
+            cv2.circle(frame, tracked_position, 1, (0, 0, 255), 2)  # Small circle at tracked position
         
         out.write(frame)
     
