@@ -54,7 +54,7 @@ python ball_detection.py
 
 To test a trained YOLO model on images or videos, follow these steps in the script: <br>
 
-Do you want to test an existing model? (y/n): <br>
+Enter (y) for testing existing models, (n) to train new models: <br>
 Type 'y' to start testing. If 'n', then the script will initiate training of new models
 
 Enter the model name, confidence threshold, IoU threshold, and max detections per frame: <br>

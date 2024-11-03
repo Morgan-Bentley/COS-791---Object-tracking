@@ -181,7 +181,7 @@ def objective(trial):
     return mAP_50
 
 if __name__ == "__main__":
-    answer1 = input("Do you want to test an existing model? (y/n): ")
+    answer1 = input("Enter (y) for testing existing models, (n) to train new models:")
     if answer1.lower() == "y":
         model = input("Enter the model name: ")
         conf = float(input("Enter the confidence threshold: "))
