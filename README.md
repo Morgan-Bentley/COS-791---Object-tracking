@@ -52,22 +52,10 @@ python ball_detection.py
 
 ### The script will prompt you for the following:
 
-Do you want to train a new model? (y/n): <br>
-Type 'y' to initiate the training process.
-
-Enter the model name (e.g., yolo11n.pt): <br>
-Provide the name of the pre-trained YOLO model you want to use.
-
-Enter the number of epochs, patience, image size, and batch size: <br>
-Input the desired training parameters.
-
-Once training is complete, the model will be saved in the modelsAndLogs/ directory along with logs of the training process.
-
-## Testing an Existing Model
 To test a trained YOLO model on images or videos, follow these steps in the script: <br>
 
 Do you want to test an existing model? (y/n): <br>
-Type 'y' to start testing.
+Type 'y' to start testing. If 'n', then the script will initiate training of new models
 
 Enter the model name, confidence threshold, IoU threshold, and max detections per frame: <br>
 Provide the necessary testing parameters.
