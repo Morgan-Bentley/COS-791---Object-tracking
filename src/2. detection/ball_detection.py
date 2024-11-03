@@ -2,7 +2,8 @@ import os
 import subprocess
 import yaml
 import torch
-import cv2
+import optuna
+import pandas as pd
 
 torch.cuda.empty_cache()
 
@@ -27,7 +28,7 @@ def get_project_path():
     else:
         return os.path.abspath(os.path.join(current_dir, '../../modelsAndLogs'))
 
-def train_yolo(yolo_model="yolo11n.pt", epochs=100, patience=100, imgsz=640, batch=16, momentum=0.937, lr=0.01):
+def train_yolo(model_num, yolo_model="yolo11n.pt", epochs=100, patience=100, imgsz=640, batch=16, momentum=0.937, lr=0.01):
     """
     Function to automate YOLOv11 model training with adapted paths according to the project structure.
     """
@@ -36,19 +37,30 @@ def train_yolo(yolo_model="yolo11n.pt", epochs=100, patience=100, imgsz=640, bat
 
     data_path = get_data_path()
     project_path = get_project_path()
+    model_dir = f"modelnum{model_num}"
     
-    # YOLO training command with augmentation options
     train_command = (
         f'yolo task=detect mode=train '
         f'model={yolo_model} '
         f'data="{data_path}" '  # Wrapped in quotes
         f'epochs={epochs} patience={patience} imgsz={imgsz} batch={batch} '
         f'project="{project_path}" '  # Wrapped in quotes
-        f'name=modelnum save=True momentum={momentum} lr0={lr} '
+        f'name={model_dir} save=True momentum={momentum} lr0={lr} '
     )
 
     print("Executing training command:", train_command)
     os.system(train_command)
+
+    metrics_path = os.path.join(project_path, model_dir, "results.csv")
+    if os.path.exists(metrics_path):
+        try:
+            metrics_df = pd.read_csv(metrics_path, sep=";")
+            mAP_50 = metrics_df["metrics/mAP50(B)"].max()
+            return mAP_50
+        except Exception as e:
+            print(f"Error reading metrics: {e}")
+            return 0
+    return 0  # Default value if metric file not found
 
 def calculate_iou(box1, box2):
     xA, yA, xB, yB = max(box1[0], box2[0]), max(box1[1], box2[1]), min(box1[2], box2[2]), min(box1[3], box2[3])
@@ -57,7 +69,7 @@ def calculate_iou(box1, box2):
     box2_area = (box2[2] - box2[0] + 1) * (box2[3] - box2[1] + 1)
     return inter_area / float(box1_area + box2_area - inter_area)
 
-def test_yolo(model="model",conf=0.2, iou=0.5, max_det=1,file_type="images", video_number=-1):
+def test_yolo(model="model", conf=0.2, iou=0.5, max_det=1, file_type="images", video_number=-1):
     """
     Function to automate YOLOv11 model testing with adapted paths according to the project structure.
 
@@ -67,7 +79,6 @@ def test_yolo(model="model",conf=0.2, iou=0.5, max_det=1,file_type="images", vid
     iou (float): Intersection over Union threshold.
     max_det (int): Maximum detections.
     """
-    # Installing ultralytics package if not already installed
     if "ultralytics" not in os.popen("pip freeze").read():
         os.system('pip install ultralytics')
 
@@ -91,28 +102,20 @@ def test_yolo(model="model",conf=0.2, iou=0.5, max_det=1,file_type="images", vid
         f"project=../../data/predictions/{save_dir} name={folder_name} save=True"
     )
 
-    # Print the testing command
     print(test_command)
-
-    # Execute the testing command
     os.system(test_command)
 
 def update_yaml_paths():
-    """
-    Function to update the paths in the data.yaml file according to the project structure.
-    """
-    # Get the current working directory
     current_dir = os.getcwd()
-    # Use raw string to handle spaces and backslashes correctly
-    current_dir = r"{}".format(current_dir)
+    train_path = os.path.abspath(os.path.join(current_dir, '../../data/raw/pictures/train'))
+    val_path = os.path.abspath(os.path.join(current_dir, '../../data/raw/pictures/valid'))
+    test_path = os.path.abspath(os.path.join(current_dir, '../../data/raw/pictures/test'))
+    yaml_path = os.path.abspath(os.path.join(current_dir, '../../data/raw/pictures/data.yaml'))
     
-    # Construct absolute paths
-    train_path = os.path.join(current_dir, r'..\..\data\raw\pictures\train')
-    val_path = os.path.join(current_dir, r'..\..\data\raw\pictures\valid')
-    test_path = os.path.join(current_dir, r'..\..\data\raw\pictures\test')
-    
-    # Load the data.yaml file
-    with open(r'..\..\data\raw\pictures\data.yaml') as file:
+    if not os.path.exists(yaml_path):
+        raise FileNotFoundError(f"{yaml_path} not found.")
+
+    with open(yaml_path, 'r') as file:
         lines = file.readlines()
 
     updated_lines = []
@@ -126,16 +129,17 @@ def update_yaml_paths():
         else:
             updated_lines.append(line)
 
-    # Save the updated data.yaml file
-    with open(r'..\..\data\raw\pictures\data.yaml', 'w') as file:
+    with open(yaml_path, 'w') as file:
         file.writelines(updated_lines)
 
 def revert_yaml_paths():
-    """
-    Function to revert the paths in the data.yaml file to the original paths.
-    """
-    # Load the data.yaml file
-    with open(r'..\..\data\raw\pictures\data.yaml') as file:
+    current_dir = os.getcwd()
+    yaml_path = os.path.abspath(os.path.join(current_dir, '../../data/raw/pictures/data.yaml'))
+
+    if not os.path.exists(yaml_path):
+        raise FileNotFoundError(f"{yaml_path} not found.")
+
+    with open(yaml_path, 'r') as file:
         lines = file.readlines()
 
     updated_lines = []
@@ -149,26 +153,36 @@ def revert_yaml_paths():
         else:
             updated_lines.append(line)
 
-    # Save the updated data.yaml file
-    with open(r'..\..\data\raw\pictures\data.yaml', 'w') as file:
+    with open(yaml_path, 'w') as file:
         file.writelines(updated_lines)
 
-if __name__ == "__main__":
-    # Train or test model based on user input
-    answer1 = input("Do you want to train a new model? (y/n): ")
-    if answer1.lower() == "y":
-        yolo_model = input("Enter a pre-trained model name (i.e yolo11n.pt): ")
-        epochs = int(input("Enter the number of epochs: "))
-        patience = int(input("Enter the patience: "))
-        imgsz = int(input("Enter the image size: "))
-        batch = float(input("Enter the batch size: "))
-        momentum = float(input("Enter the momentum (i.e 0.937): "))
-        lr = float(input("Enter the learning rate (i.e 0.01): "))
-        train_yolo(yolo_model, epochs, patience, imgsz, int(batch) if batch.is_integer() else batch, momentum, lr)
-        revert_yaml_paths()
+# Global counter for model directory
+model_counter = 1
 
-    answer2 = input("Do you want to test an existing model? (y/n): ")
-    if answer2.lower() == "y":
+def objective(trial):
+    global model_counter
+    model_counter += 1
+
+    yolo_model = trial.suggest_categorical("yolo_model", ["yolo11n.pt"])
+    epochs = trial.suggest_int("epochs", 50, 300)
+    patience = trial.suggest_int("patience", 10, 20)
+    
+    imgsz = trial.suggest_int("imgsz", 1920, 2048, step=160)
+
+    batch = trial.suggest_float("batch", 0.8, 0.95)
+
+    momentum = trial.suggest_float("momentum", 0.85, 0.95)  
+
+    lr = trial.suggest_float("lr", 1e-4, 1e-2, log=True)
+
+    mAP_50 = train_yolo(model_counter, yolo_model, epochs, patience, imgsz, batch, momentum, lr)
+    revert_yaml_paths()
+
+    return mAP_50
+
+if __name__ == "__main__":
+    answer1 = input("Do you want to test an existing model? (y/n): ")
+    if answer1.lower() == "y":
         model = input("Enter the model name: ")
         conf = float(input("Enter the confidence threshold: "))
         iou = float(input("Enter the intersection over union threshold: "))
@@ -180,3 +194,14 @@ if __name__ == "__main__":
         else:
             test_yolo(model, conf, iou, max_det)
         revert_yaml_paths()
+    else:
+        study = optuna.create_study(direction="maximize")
+        study.optimize(objective, n_trials=3) 
+
+        print("Best trial:")
+        trial = study.best_trial
+
+        print(f"  Value: {trial.value}")
+        print("  Params:")
+        for key, value in trial.params.items():
+            print(f"    {key}: {value}")
