@@ -41,7 +41,7 @@ The directory structure for this project is as follows:
 
 ### Prerequisites:
 Anaconda: Download and install Anaconda for managing dependencies and creating isolated environments.<br>
-NVIDIA GPU (optional): If you plan to use GPU acceleration, ensure you have an NVIDIA GPU and the compatible CUDA version installed.
+NVIDIA GPU (recommended): For GPU acceleration, ensure you have an NVIDIA GPU and the compatible CUDA version installed.
 
 **Create a New Environment:**<br>
 Open Anaconda Prompt and create a new environment for YOLO:
