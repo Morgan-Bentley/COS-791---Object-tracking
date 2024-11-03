@@ -38,9 +38,40 @@ The directory structure for this project is as follows:
 ```
 
 ## Setting Up the Environment
-Ensure that Python 3.12 is installed, along with the ultralytics package for YOLOv11. If not installed, run:
+
+### Prerequisites:
+Anaconda: Download and install Anaconda for managing dependencies and creating isolated environments.<br>
+NVIDIA GPU (recommended): For GPU acceleration, ensure you have an NVIDIA GPU and the compatible CUDA version installed.
+
+**Create a New Environment:**<br>
+Open Anaconda Prompt and create a new environment for YOLO:
+```bash
+conda create -n yolov11_env python=<python-version>
+```
+**Activate the environment:**
+```bash
+conda activate yolov11_env
+```
+**Install PyTorch:**<br>
+Install the appropriate version of PyTorch for your setup:<br>
+CPU-only:
+```bash
+conda install pytorch torchvision torchaudio cpuonly -c pytorch
+```
+GPU (CUDA-enabled): <br>
+Visit PyTorch’s Get Started page for the exact command matching your CUDA version. Example:
+```bash
+conda install pytorch torchvision torchaudio cudatoolkit=<cuda_version> -c pytorch
+```
+**Install YOLO with Ultralytics:**<br>
+Install the ultralytics package:
 ```bash
 pip install ultralytics
+```
+**Verify Installation:**<br>
+Check that YOLO is installed correctly:
+```bash
+python -c "from ultralytics import YOLO; YOLO('yolov11n.pt')"
 ```
 
 ## Training a New Model
@@ -76,13 +107,13 @@ Do you want to test on images or videos? (images/videos): <br>
 Specify whether to test on images or videos. If videos, you can test on multiple video files.
 
 ## Ball Tracking and Video Processing with YOLO
-In addition to training and testing, the script includes a feature to track and modify the appearance of the ball in videos using the BallTracker class. This class tracks the ball’s position across frames and predicts its location if it temporarily disappears. Additionally, you can modify the ball’s hue and enlarge it for enhanced visibility.
+In tracking directory there is a script that allows you to track and modify the appearance of the ball in videos using the BallTracker class. This class tracks the ball’s position across frames and predicts its location if it temporarily disappears. Additionally, you can modify the ball’s hue and enlarge it for enhanced visibility.
 
 ### Run Ball Tracking:
 To process videos with ball tracking, run:
 
 ```bash
-python ball_detection.py
+python ball_tracking.py
 ```
 
 ### The script will prompt for these additional inputs:
