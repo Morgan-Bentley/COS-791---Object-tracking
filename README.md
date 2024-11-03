@@ -107,7 +107,7 @@ Do you want to test on images or videos? (images/videos): <br>
 Specify whether to test on images or videos. If videos, you can test on multiple video files.
 
 ## Ball Tracking and Video Processing with YOLO
-In addition to training and testing, the script includes a feature to track and modify the appearance of the ball in videos using the BallTracker class. This class tracks the ball’s position across frames and predicts its location if it temporarily disappears. Additionally, you can modify the ball’s hue and enlarge it for enhanced visibility.
+In tracking directory there is a script that allows you to track and modify the appearance of the ball in videos using the BallTracker class. This class tracks the ball’s position across frames and predicts its location if it temporarily disappears. Additionally, you can modify the ball’s hue and enlarge it for enhanced visibility.
 
 ### Run Ball Tracking:
 To process videos with ball tracking, run:
