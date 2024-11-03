@@ -39,20 +39,20 @@ The directory structure for this project is as follows:
 
 ## Setting Up the Environment
 
-### Prerequisites
+### Prerequisites:
 Anaconda: Download and install Anaconda for managing dependencies and creating isolated environments.
 NVIDIA GPU (optional): If you plan to use GPU acceleration, ensure you have an NVIDIA GPU and the compatible CUDA version installed.
 
-Create a New Environment<br>
+<u>Create a New Environment:</u><br>
 Open Anaconda Prompt and create a new environment for YOLO:
 ```bash
 conda create -n yolov11_env python=<python-version>
 ```
-Activate the environment:
+<u>Activate the environment:</u>
 ```bash
 conda activate yolov11_env
 ```
-Install PyTorch<br>
+<u>Install PyTorch:<u><br>
 Install the appropriate version of PyTorch for your setup:<br>
 CPU-only:
 ```bash
@@ -62,12 +62,12 @@ GPU (CUDA-enabled): Visit PyTorch’s Get Started page for the exact command mat
 ```bash
 conda install pytorch torchvision torchaudio cudatoolkit=<cuda_version> -c pytorch
 ```
-Install YOLO with Ultralytics<br>
+<u>Install YOLO with Ultralytics:</u><br>
 Install the ultralytics package:
 ```bash
 pip install ultralytics
 ```
-Verify Installation<br>
+<u>Verify Installation:</u><br>
 Check that YOLO is installed correctly:
 ```bash
 python -c "from ultralytics import YOLO; YOLO('yolov8n.pt')"
